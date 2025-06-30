@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EV Community Portal</title>
+</head>
+<body>
+    <h1>Welcome to the EV Community Portal</h1>
+    <div id="posts"></div>
+    <script>
+        fetch('/api/posts')
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('posts');
+                data.forEach(post => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>Votes: ${post.votes}</small>`;
+                    container.appendChild(div);
+                });
+            });
+    </script>
+</body>
+</html>
