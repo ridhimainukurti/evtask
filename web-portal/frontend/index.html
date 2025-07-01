@@ -5,18 +5,48 @@
 </head>
 <body>
     <h1>Welcome to the EV Community Portal</h1>
+    <form id="postForm">
+        <input type="text" id="title" placeholder="Title" required>
+        <input type="text" id="content" placeholder="Content or Link" requried?>
+        <button type="submit">Post</button>
+    </form>
     <div id="posts"></div>
     <script>
-        fetch('/api/posts')
-            .then(res => res.json())
-            .then(data => {
-                const container = document.getElementById('posts');
-                data.forEach(post => {
-                    const div = document.createElement('div');
-                    div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>Votes: ${post.votes}</small>`;
-                    container.appendChild(div);
+        // asks for lists of post from backend 
+        function loadPosts() {
+            fetch('api/posts')
+                .then(res => res.json())
+                // loops through each post and adds a div showing title, content and vote count
+                .then(data => {
+                    const container = document.getElementById('posts');
+                    container.innerHTML = '';
+                    data.forEach(post => {
+                        const div = document.createElement('div');
+                        div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>Votes: ${post.votes}</small>`;
+                        container.appendChild(div);
+                    });
                 });
+        }
+        loadPosts();
+
+        // listens when user submits a post form 
+        document.getElementById('postForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // stops default form action, grabs input values and sends them as a new post (backend)
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            fetch('api/posts', {
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({title, content})
+            })
+            // refreshes post feed and clears form 
+            .then((res => res.json()))
+            .then(() => {
+                loadPosts();
+                document.getElementById('postForm').reset();
             });
+        });
     </script>
 </body>
 </html>
