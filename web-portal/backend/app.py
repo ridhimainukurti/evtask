@@ -69,6 +69,18 @@ def vote_post(post_id):
             return jsonify(post)
     return jsonify({"error": "post not found"}), 404
 
+# admin dashboard endpoint to remove posts
+@app.route('/api/posts/<int:post_id>/delete', methods=['DELETE'])
+def delete_posts(post_id):
+    global posts
+    # checking if the admin is in the query string 
+    username = request.args.get("admin")
+    if username != "admin":
+        return jsonify({"error": "not authorized"}), 401
+    # removes post with the given post id and returns a message
+    posts = [p for p in posts if p["id"] != post_id]
+    return jsonify({"message": "deleted"})
+
 @app.route('/')
 def index():
     #return send_from_directory('../frontend', 'index.html')

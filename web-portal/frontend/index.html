@@ -74,12 +74,29 @@
                             </div>
                             <button onclick="vote(${post.id}, 'upvote')">Upvote</button> 
                             <button onclick="vote(${post.id}, 'downvote')">Downvote</button>
+                            ${
+                                localStorage.getItem('username') == 'admin'
+                                ? `<button onclick="deletePost(${post.id})" class="delete-btn" style="background:#e53e3e;margin-left:16px;">Delete</button>`
+                                : ''
+                            }
                         `;
                         container.appendChild(div);
                     });
                 });
         }
         //loadPosts();
+
+        // deletes a post if it is inappropriate
+        function deletePost(postID) {
+            if (!confirm("Are you sure that you want to delete this post")) return;
+            fetch(`/api/posts/${postID}/delete?admin=admin`, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(() => {
+                loadPosts();
+            });
+        }
 
         // sends a POST to backend with post id and action which updates the post's vote count 
         function vote(postID, action) {
