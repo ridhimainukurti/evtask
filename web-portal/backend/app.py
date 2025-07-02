@@ -16,7 +16,7 @@ def register():
     password = data.get("password")
     # checking to see if user exists if not add to users list
     if any(u["username"] == username for u in users): 
-        return jsonify({"Error": "user already exists"}), 400
+        return jsonify({"error": "user already exists"}), 400
     users.append({"username": username, "password": password})
     return jsonify({"message": "registered"})
 
@@ -29,7 +29,7 @@ def login():
     for user in users: 
         if user["username"] == username and user["password"] == password:
             return jsonify({"message": "logged in", "username": username})
-        return jsonify({"Error": "invalid credentials"}), 401
+    return jsonify({"error": "invalid credentials"}), 401
 
 # endpoint for adding or viewing posts 
 @app.route('/api/posts', methods=['GET', 'POST'])
@@ -63,7 +63,7 @@ def vote_post(post_id):
             elif action == "downvote":
                 post["votes"] -= 1
             return jsonify(post)
-    return jsonify({"Error": "post not found"}), 404
+    return jsonify({"error": "post not found"}), 404
 
 @app.route('/')
 def index():
