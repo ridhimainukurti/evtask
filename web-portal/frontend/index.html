@@ -5,6 +5,22 @@
 </head>
 <body>
     <h1>Welcome to the EV Community Portal</h1>
+    <div id="authSection">
+        <h3>Register</h3>
+        <form id="registerForm">
+            <input type="text" id="reguser" placeholder="Username" required>
+            <input type="password" id="regpass" placeholder="Password" required>
+            <button type="submit">Register</button>
+        </form>
+
+        <h3>Login</h3>
+        <form id="loginForm">
+            <input type="text" id="loginuser" placeholder="Username" required>
+            <input type="password" id="loginpass" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div id="userWelcome"></div>
+    </div>
     <form id="postForm">
         <input type="text" id="title" placeholder="Title" required>
         <input type="text" id="content" placeholder="Content or Link" requried?>
@@ -13,6 +29,7 @@
     <div id="posts"></div>
     <script>
         // asks for lists of post from backend 
+        // has two buttons: upvote & downvote 
         function loadPosts() {
             fetch('api/posts')
                 .then(res => res.json())
@@ -21,13 +38,82 @@
                     const container = document.getElementById('posts');
                     container.innerHTML = '';
                     data.forEach(post => {
+                        // small div for each post 
                         const div = document.createElement('div');
-                        div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>Votes: ${post.votes}</small>`;
+                        div.innerHTML = `
+                            <h3>${post.title}</h3>
+                            <p>${post.content}</p>
+                            <small>Votes: <span id="votes-${post.id}">${post.votes}</span></small>
+                            <small>Posted by: ${post.user || 'Anonymous'}</small>
+                            <button onclick="vote(${post.id}, 'upvote')">Upvote</button> 
+                            <button onclick="vote(${post.id}, 'downvote')">Downvote</button>
+                        `;
                         container.appendChild(div);
                     });
                 });
         }
         loadPosts();
+
+        // sends a POST to backend with post id and action which updates the post's vote count 
+        function vote(postID, action) {
+            fetch(`/api/posts/${postID}/vote`, {
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action })
+            })
+            .then(res => res.json())
+            .then(updatedPost => {
+                // updates the vote count for this post 
+                document.getElementById(`votes-${postID}`).textContent = updatedPost.votes;
+            });
+        }
+        // handles registration 
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            // gets the input fields and sends a request to create a new user
+            e.preventDefault();
+            const username = document.getElementById('reguser').value;
+            const password = document.getElementById('regpass').value;
+            fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-type': 'application/json'},
+                body: JSON.stringify({ username, password })
+            })
+            // gets confirmation that user is registered and resets form 
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || data.error);
+                document.getElementById('registerForm').reset();
+            });
+        });
+
+        // handles login 
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            // stops reloading of papge and reads input fields
+            e.preventDefault(); 
+            const username = document.getElementById('loginuser').value;
+            const password = document.getElementById('loginpass').value;
+            // sends a request and saves logged in user in local storage
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-type': 'application/json'},
+                body: JSON.stringify({ username, password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.username) {
+                    localStorage.setItem('username', data.username);
+                    document.getElementById('userWelcome').innerText = "Logged in as " + data.username;
+                } else {
+                    alert(data.error);
+                }
+                document.getElementById('loginForm').reset();
+            });
+        });
+
+        // show if user is logged in already 
+        if (localStorage.getItem('username')) {
+            document.getElementById('userWelcome').innerText = "Logged in as " + localStorage.getItem('username');
+        }
 
         // listens when user submits a post form 
         document.getElementById('postForm').addEventListener('submit', function(e) {
@@ -35,10 +121,11 @@
             // stops default form action, grabs input values and sends them as a new post (backend)
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
+            const user = localStorage.getItem('username') || 'Anonymous';
             fetch('api/posts', {
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({title, content})
+                body: JSON.stringify({title, content, user})
             })
             // refreshes post feed and clears form 
             .then((res => res.json()))
