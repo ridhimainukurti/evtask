@@ -1,6 +1,10 @@
 from flask import Flask, jsonify, request, send_from_directory
+import os
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), '../frontend/static'))
+)
 
 posts = [
      {"id": 1, "title": "Welcome to EV Community", "content": "First post!", "votes": 5}
@@ -67,7 +71,12 @@ def vote_post(post_id):
 
 @app.route('/')
 def index():
-    return send_from_directory('../frontend', 'index.html')
+    #return send_from_directory('../frontend', 'index.html')
+    return send_from_directory(os.path.abspath(os.path.join(os.path.dirname(__file__), '../frontend')), 'index.html')
+
+@app.route('/static/<path:filename>')
+def send_static(filename):
+    return send_from_directory(app.static_folder, filename)
 
 if __name__ == '__main__':
     app.run(debug=True)

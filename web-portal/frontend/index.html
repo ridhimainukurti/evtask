@@ -2,10 +2,12 @@
 <html>
 <head>
     <title>EV Community Portal</title>
+    <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
     <h1>Welcome to the EV Community Portal</h1>
     <div id="authSection">
+
         <h3>Register</h3>
         <form id="registerForm">
             <input type="text" id="reguser" placeholder="Username" required>
@@ -20,14 +22,35 @@
             <button type="submit">Login</button>
         </form>
         <div id="userWelcome"></div>
-        <button id="logoutBtn" style="display:none;">Sign Out</button>
     </div>
-    <form id="postForm">
-        <input type="text" id="title" placeholder="Title" required>
-        <input type="text" id="content" placeholder="Content or Link" requried?>
-        <button type="submit">Post</button>
-    </form>
-    <div id="posts"></div>
+
+    <button id="logoutBtn" 
+        style="
+            display:none;
+            position:absolute;
+            top:20px;
+            right:30px;
+            z-index:10;
+            padding:8px 16px;
+            background:#6d6a6a;
+            color:rgb(205, 197, 197);
+            border:none;
+            border-radius:5px;
+            font-weight:bold;
+            cursor:pointer;
+        ">
+        Sign Out
+    </button>
+
+    <div id="mainApp" style="display:none;">
+        <form id="postForm">
+            <input type="text" id="title" placeholder="Title" required>
+            <input type="text" id="content" placeholder="Content or Link" requried?>
+            <button type="submit">Post</button>
+        </form>
+        <div id="posts"></div>
+    </div>
+    
     <script>
         // asks for lists of post from backend 
         // has two buttons: upvote & downvote 
@@ -41,11 +64,14 @@
                     data.forEach(post => {
                         // small div for each post 
                         const div = document.createElement('div');
+                        div.className = 'post';
                         div.innerHTML = `
                             <h3>${post.title}</h3>
                             <p>${post.content}</p>
-                            <small>Votes: <span id="votes-${post.id}">${post.votes}</span></small>
-                            <small>Posted by: ${post.user || 'Anonymous'}</small>
+                            <div class="post-meta">
+                                <span>Votes: <span id="votes-${post.id}">${post.votes}</span></span>
+                                <span>Posted by: ${post.user || 'Anonymous'}</span>
+                            </div>
                             <button onclick="vote(${post.id}, 'upvote')">Upvote</button> 
                             <button onclick="vote(${post.id}, 'downvote')">Downvote</button>
                         `;
@@ -53,7 +79,7 @@
                     });
                 });
         }
-        loadPosts();
+        //loadPosts();
 
         // sends a POST to backend with post id and action which updates the post's vote count 
         function vote(postID, action) {
@@ -69,19 +95,28 @@
             });
         }
 
-        // updates the page to reflect whether user is logged in or not
+        // updates the page to reflect whether user is logged in or not & show/hide sections 
         function updateUserUI() {
             // gets username data 
             const user = localStorage.getItem('username');
             const welcomeDiv = document.getElementById('userWelcome');
             const logoutBtn = document.getElementById('logoutBtn');
+            const authSection = document.getElementById('authSection');
+            const mainApp = document.getElementById('mainApp');
             // if username is there then display information otherwise remove
             if (user) {
                 welcomeDiv.innerText = "Logged in as " + user;
                 logoutBtn.style.display = "inline";
+                // hide authentication forms & show main content 
+                authSection.style.display = "none";
+                mainApp.style.display = "block";
+                loadPosts();
             } else {
                 welcomeDiv.innerText = "";
                 logoutBtn.style.display = "none";
+                // show authentication forms & hide main content 
+                authSection.style.display = "block";
+                mainApp.style.display = "none";
             }
         }
 
