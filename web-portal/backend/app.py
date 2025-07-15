@@ -7,7 +7,7 @@ app = Flask(
 )
 
 posts = [
-     {"id": 1, "title": "Welcome to EV Community", "content": "First post!", "votes": 5}
+     {"id": 1, "title": "Welcome to EV Community", "content": "First post!", "votes": 5, "comments": []}
 ]
 
 # stores registered users 
@@ -46,7 +46,8 @@ def get_or_add_posts():
             "title": data.get("title"),
             "content": data.get("content"),
             "votes": 0,
-            "user": data.get("user", "anonymous")
+            "user": data.get("user", "anonymous"),
+            "comments": []
         }
         posts.append(new_post)
         return jsonify(new_post), 201
@@ -89,6 +90,20 @@ def index():
 @app.route('/static/<path:filename>')
 def send_static(filename):
     return send_from_directory(app.static_folder, filename)
+
+# creating an endpoint for commenting system 
+@app.route('/api/posts/<int:post_id>/comments', methods=['GET', 'POST'])
+def post_comments(post_id):
+    post = next((p for p in posts if p['id'] == post_id), None)
+    if not post:
+        return jsonify({"error": "post not found"}), 404
+    if request.method == 'POST':
+        data = request.json
+        comment = {"user": data.get("user", "anonymous"), "content": data.get("content")}
+        post.setdefault('comments', []).append(comment)
+        return jsonify(comment), 201
+    else:
+        return jsonify(post.get('comments', []))
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -52,6 +52,42 @@
     </div>
     
     <script>
+
+        // loading the comments for a particular post 
+        function loadComments(postID) {
+            fetch(`/api/posts/${postID}/comments`)
+                .then(res => res.json())
+                .then(comments => {
+                    //debug
+                    console.log("Loaded comments for post " + postID, comments);
+                    const listDiv = document.getElementById(`commentList-${postID}`);
+                    listDiv.innerHTML = '';
+                    comments.forEach(comment => {
+                        const c = document.createElement('div');
+                        c.className = 'comment';
+                        c.innerHTML = `<b>${comment.user}:</b> ${comment.content}`;
+                        listDiv.appendChild(c);
+                    });
+                });       
+        }
+        
+        // another helper for adding commenting 
+        function addComment(event, postId) {
+            event.preventDefault();
+            const input = document.getElementById(`commentInput-${postId}`);
+            const content = input.value;
+            const user = localStorage.getItem('username') || 'Anonymous';
+            fetch(`/api/posts/${postId}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user, content })
+            })
+            .then(res => res.json())
+            .then(() => {
+                loadComments(postId);
+                input.value = '';
+            });
+        }
         // asks for lists of post from backend 
         // has two buttons: upvote & downvote 
         function loadPosts() {
@@ -79,8 +115,25 @@
                                 ? `<button onclick="deletePost(${post.id})" class="delete-btn" style="background:#e53e3e;margin-left:16px;">Delete</button>`
                                 : ''
                             }
+                            <div class="comments" id="comments-${post.id}">
+                                <strong>Comments:</strong>
+                                <div id="commentList-${post.id}"></div>
+                                <form id="commentForm-${post.id}" data-post-id="${post.id}">
+                                    <input type="text" placeholder="Add a comment" id="commentInput-${post.id}" required />
+                                    <button type="submit">Post</button>
+                                </form>
+                            </div>
                         `;
                         container.appendChild(div);
+                        loadComments(post.id);
+
+                    });
+                    document.querySelectorAll('form[id^="commentForm-"]').forEach(form => {
+                        form.onsubmit = function(event) {
+                            event.preventDefault();
+                            const postId = form.dataset.postId;
+                            addComment(event, postId);
+                        }
                     });
                 });
         }
