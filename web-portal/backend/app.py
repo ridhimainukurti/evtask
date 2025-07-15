@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, send_from_directory
+from datetime import datetime 
 import os
 
 app = Flask(
@@ -18,10 +19,18 @@ def register():
     data = request.json
     username = data.get("username")
     password = data.get("password")
+    # Add description and registration date
+    description = data.get("description", "This user has not set a description yet.")
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
     # checking to see if user exists if not add to users list
     if any(u["username"] == username for u in users): 
         return jsonify({"error": "user already exists"}), 400
-    users.append({"username": username, "password": password})
+    users.append({
+        "username": username, 
+        "password": password,
+        "description": description, 
+        "created_at": created_at
+    })
     return jsonify({"message": "registered"})
 
 @app.route('/api/login', methods=['POST'])   
@@ -104,6 +113,36 @@ def post_comments(post_id):
         return jsonify(comment), 201
     else:
         return jsonify(post.get('comments', []))
+
+# adding endpoint for user post history system 
+@app.route('/api/users/<username>/posts', methods=['GET'])
+def user_posts(username):
+    user_posts = [p for p in posts if p.get("user") == username]
+    return jsonify(user_posts)
+
+# adding enpoint to get the user info 
+@app.route('/api/users/<username>/info', methods=['GET'])
+def get_user_info(username):
+    user = next((u for u in users if u["username"] == username), None)
+    if not user:
+        return jsonify({"error": "user not found"}), 404
+    # Do not return password!
+    return jsonify({
+        "username": user["username"],
+        "description": user["description"],
+        "created_at": user["created_at"]
+    })
+
+# update their profile description 
+@app.route('/api/users/<username>/description', methods=['POST'])
+def update_description(username):
+    user = next((u for u in users if u["username"] == username), None)
+    if not user:
+        return jsonify({"error": "user not found"}), 404
+    data = request.json
+    new_description = data.get("description", "")
+    user["description"] = new_description
+    return jsonify({"message": "Description updated", "description": new_description})
 
 if __name__ == '__main__':
     app.run(debug=True)
