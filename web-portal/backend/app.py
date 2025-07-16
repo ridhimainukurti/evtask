@@ -13,6 +13,10 @@ posts = [
 
 # stores registered users 
 users = []
+for u in users:
+    if "favorites" not in u:
+        u["favorites"] = []
+        
 # endpoint for user authentication 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -29,7 +33,8 @@ def register():
         "username": username, 
         "password": password,
         "description": description, 
-        "created_at": created_at
+        "created_at": created_at,
+        "favorites": []
     })
     return jsonify({"message": "registered"})
 
@@ -62,7 +67,14 @@ def get_or_add_posts():
         return jsonify(new_post), 201
     # if request is GET, returns full list of posts sorted by vote count 
     else:
-        return jsonify(sorted(posts, key=lambda x: x['votes'], reverse=True))
+        search_term = request.args.get('search', '').lower()
+        filtered_posts = posts
+        if search_term:
+            filtered_posts = [
+                p for p in posts
+                if search_term in p['title'].lower() or search_term in p['content'].lower()
+            ]
+        return jsonify(sorted(filtered_posts, key=lambda x: x['votes'], reverse=True))
 
 # new post endpoint 
 @app.route('/api/posts/<int:post_id>/vote', methods=['POST'])
@@ -143,6 +155,30 @@ def update_description(username):
     new_description = data.get("description", "")
     user["description"] = new_description
     return jsonify({"message": "Description updated", "description": new_description})
+
+# Get all favorite posts for a user
+@app.route('/api/users/<username>/favorites', methods=['GET'])
+def get_favorites(username):
+    user = next((u for u in users if u["username"] == username), None)
+    if not user:
+        return jsonify({"error": "user not found"}), 404
+    fav_posts = [p for p in posts if p["id"] in user["favorites"]]
+    return jsonify(fav_posts)
+
+# Add or remove a favorite post for a user
+@app.route('/api/users/<username>/favorites/<int:post_id>', methods=['POST', 'DELETE'])
+def modify_favorites(username, post_id):
+    user = next((u for u in users if u["username"] == username), None)
+    if not user:
+        return jsonify({"error": "user not found"}), 404
+    if request.method == 'POST':
+        if post_id not in user["favorites"]:
+            user["favorites"].append(post_id)
+        return jsonify({"message": "Added to favorites"})
+    elif request.method == 'DELETE':
+        if post_id in user["favorites"]:
+            user["favorites"].remove(post_id)
+        return jsonify({"message": "Removed from favorites"})
 
 if __name__ == '__main__':
     app.run(debug=True)

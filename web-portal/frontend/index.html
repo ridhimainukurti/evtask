@@ -1,58 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>EV Community Portal</title>
+    <meta name="viewport" content="width=1024">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
-    <h1>Welcome to the EV Community Portal</h1>
-    <div id="authSection">
-
+    <h1>EV Community Portal</h1>
+    <div id="authSection" class="card auth-card">
         <h3>Register</h3>
         <form id="registerForm">
             <input type="text" id="reguser" placeholder="Username" required>
             <input type="password" id="regpass" placeholder="Password" required>
-            <button type="submit">Register</button>
+            <button type="submit" class="btn-main">Register</button>
         </form>
-        
         <h3>Login</h3>
         <form id="loginForm">
             <input type="text" id="loginuser" placeholder="Username" required>
             <input type="password" id="loginpass" placeholder="Password" required>
-            <button type="submit">Login</button>
+            <button type="submit" class="btn-main">Login</button>
         </form>
         <div id="userWelcome"></div>
     </div>
 
-    <button id="logoutBtn" 
-        style="
-            display:none;
-            position:absolute;
-            top:20px;
-            right:30px;
-            z-index:10;
-            padding:8px 16px;
-            background:#6d6a6a;
-            color:rgb(205, 197, 197);
-            border:none;
-            border-radius:5px;
-            font-weight:bold;
-            cursor:pointer;
-        ">
-        Sign Out
-    </button>
+    <button id="logoutBtn" class="logout-btn" style="display:none;">Sign Out</button>
 
-    <div id="mainApp" style="display:none;">
-        <form id="postForm">
-            <input type="text" id="title" placeholder="Title" required>
-            <input type="text" id="content" placeholder="Content or Link" requried?>
-            <button type="submit">Post</button>
-        </form>
+    <div id="mainApp" class="card main-card" style="display:none;">
+        <div class="composer-card">
+            <form id="postForm" class="post-form">
+                <input type="text" id="title" placeholder="Title" required>
+                <input type="text" id="content" placeholder="Content or Link" required>
+                <button type="submit" class="btn-main btn-post">Post</button>
+            </form>
+            <div class="controls-toolbar">
+                <input type="text" id="searchInput" class="search-bar" placeholder="Search posts...">
+                <button id="searchBtn" class="btn-main">Search</button>
+                <button id="clearSearchBtn" class="btn-ghost">Clear</button>
+                <button id="showFavBtn" class="btn-fav"><i class="fa fa-star"></i> Saved</button>
+            </div>
+        </div>
         <div id="posts"></div>
     </div>
-    
     <script>
+        window.userFavorites = [];
 
+        document.getElementById('searchBtn').onclick = function() {
+            const term = document.getElementById('searchInput').value.trim();
+            loadPosts(term);
+        };
+
+        document.getElementById('clearSearchBtn').onclick = function() {
+            document.getElementById('searchInput').value = '';
+            loadPosts();
+        };
         // loading the comments for a particular post 
         function loadComments(postID) {
             fetch(`/api/posts/${postID}/comments`)
@@ -90,34 +93,47 @@
         }
         // asks for lists of post from backend 
         // has two buttons: upvote & downvote 
-        function loadPosts() {
-            fetch('api/posts')
+        function loadPosts(searchTerm) {
+            let url = 'api/posts';
+            if (searchTerm) {
+                url += '?search=' + encodeURIComponent(searchTerm);
+            }
+
+            fetch(url)
                 .then(res => res.json())
-                // loops through each post and adds a div showing title, content and vote count
                 .then(data => {
                     const container = document.getElementById('posts');
                     container.innerHTML = '';
                     data.forEach(post => {
-                        // small div for each post 
                         const div = document.createElement('div');
                         div.className = 'post';
+                        const currentUser = localStorage.getItem('username');
+                        let isFavorited = false;  
+                        if (currentUser && post.id && window.userFavorites) {
+                            isFavorited = window.userFavorites.includes(post.id);
+                        }
                         div.innerHTML = `
                             <h3>${post.title}</h3>
                             <p>${post.content}</p>
                             <div class="post-meta">
                                 <span>Votes: <span id="votes-${post.id}">${post.votes}</span></span>
-                                <span>
-                                    Posted by: 
+                                <span>Posted by: 
                                     <a href="#" class="user-link" data-username="${post.user || 'Anonymous'}">
                                         ${post.user || 'Anonymous'}
                                     </a>
                                 </span>
                             </div>
-                            <button onclick="vote(${post.id}, 'upvote')">Upvote</button> 
-                            <button onclick="vote(${post.id}, 'downvote')">Downvote</button>
-                            ${
-                                localStorage.getItem('username') == 'admin'
-                                ? `<button onclick="deletePost(${post.id})" class="delete-btn" style="background:#e53e3e;margin-left:16px;">Delete</button>`
+                            <div class="vote-group">
+                                <button onclick="vote(${post.id}, 'upvote')" class="btn-vote upvote"><i class="fa fa-arrow-up"></i></button>
+                                <span class="vote-count" id="votes-${post.id}">${post.votes}</span>
+                                <button onclick="vote(${post.id}, 'downvote')" class="btn-vote downvote"><i class="fa fa-arrow-down"></i></button>
+                            </div>
+                            <button onclick="toggleFavorite(${post.id})" class="btn-fav-big">
+                                <i class="fa${isFavorited ? 's' : 'r'} fa-star"></i>
+                                ${isFavorited ? 'Saved' : 'Save'}
+                            </button>
+                            ${localStorage.getItem('username') == 'admin'
+                                ? `<button onclick="deletePost(${post.id})" class="btn-delete">Delete</button>`
                                 : ''
                             }
                             <div class="comments" id="comments-${post.id}">
@@ -125,15 +141,14 @@
                                 <div id="commentList-${post.id}"></div>
                                 <form id="commentForm-${post.id}" data-post-id="${post.id}">
                                     <input type="text" placeholder="Add a comment" id="commentInput-${post.id}" required />
-                                    <button type="submit">Post</button>
+                                    <button type="submit" class="btn-main btn-comment">Post</button>
                                 </form>
                             </div>
                         `;
                         container.appendChild(div);
                         loadComments(post.id);
-
                     });
-                               
+                    // Re-add event listeners for user profile links and comment forms, if needed
                     document.querySelectorAll('.user-link').forEach(link => {
                         link.onclick = function(e) {
                             e.preventDefault();
@@ -141,7 +156,6 @@
                             showUserPosts(username);
                         };
                     });
-
                     document.querySelectorAll('form[id^="commentForm-"]').forEach(form => {
                         form.onsubmit = function(event) {
                             event.preventDefault();
@@ -171,7 +185,7 @@
 
                                 // Build profile header with editable description if current user
                                 let profileHtml = `
-                                    <button id="backToFeedBtn">Back to Feed</button>
+                                    <button id="backToFeedBtn" class="btn-main btn-ghost">Back to Feed</button>
                                     <h2>Profile: ${userInfo.username}</h2>
                                     <p><b>Joined:</b> ${userInfo.created_at}</p>
                                 `;
@@ -299,7 +313,14 @@
                 // hide authentication forms & show main content 
                 authSection.style.display = "none";
                 mainApp.style.display = "block";
-                loadPosts();
+                // Fetch and cache favorites when logged in
+                fetch(`/api/users/${user}/favorites`)
+                    .then(res => res.json())
+                    .then(favs => {
+                        window.userFavorites = favs.map(p => p.id);
+                        loadPosts();
+                    });
+                return;
             } else {
                 welcomeDiv.innerText = "";
                 logoutBtn.style.display = "none";
@@ -307,6 +328,27 @@
                 authSection.style.display = "block";
                 mainApp.style.display = "none";
             }
+        }
+
+        function toggleFavorite(postId) {
+            const user = localStorage.getItem('username');
+            if (!user) {
+                alert("You need to log in to save posts!");
+                return;
+            }
+            let isFavorite = window.userFavorites && window.userFavorites.includes(postId);
+            let method = isFavorite ? 'DELETE' : 'POST';
+            fetch(`/api/users/${user}/favorites/${postId}`, { method })
+                .then(res => res.json())
+                .then(() => {
+                    // Update favorites, then reload posts (respecting search filter)
+                    fetch(`/api/users/${user}/favorites`)
+                        .then(res => res.json())
+                        .then(favs => {
+                            window.userFavorites = favs.map(p => p.id);
+                            loadPosts(document.getElementById('searchInput').value.trim());
+                        });
+                });
         }
 
         // handles registration 
@@ -383,7 +425,50 @@
         document.getElementById('logoutBtn').addEventListener('click', function() {
             localStorage.removeItem('username');
             updateUserUI();
-        })
+        });
+
+        document.getElementById('showFavBtn').onclick = function() {
+            const user = localStorage.getItem('username');
+            if (!user) {
+                alert("Log in to see saved posts!");
+                return;
+            }
+            fetch(`/api/users/${user}/favorites`)
+                .then(res => res.json())
+                .then(posts => {
+                    const container = document.getElementById('posts');
+                    container.innerHTML = "<h2>Saved Posts</h2>";
+                    posts.forEach(post => {
+                        const div = document.createElement('div');
+                        div.className = 'post';
+                        div.innerHTML = `
+                            <h3>${post.title}</h3>
+                            <p>${post.content}</p>
+                            <div class="post-meta">
+                                <span>Votes: <span id="votes-${post.id}">${post.votes}</span></span>
+                                <span>Posted by: 
+                                    <a href="#" class="user-link" data-username="${post.user || 'Anonymous'}">
+                                        ${post.user || 'Anonymous'}
+                                    </a>
+                                </span>
+                            </div>
+                            <button onclick="toggleFavorite(${post.id})" class="fav-btn" style="margin-left:10px;">
+                                ★ Saved
+                            </button>
+                            <div class="comments" id="comments-${post.id}">
+                                <strong>Comments:</strong>
+                                <div id="commentList-${post.id}"></div>
+                                <form id="commentForm-${post.id}" data-post-id="${post.id}">
+                                    <input type="text" placeholder="Add a comment" id="commentInput-${post.id}" required />
+                                    <button type="submit">Post</button>
+                                </form>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                        loadComments(post.id);
+                    });
+                });
+        };  
     </script>
 </body>
 </html>
