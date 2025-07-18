@@ -11,7 +11,7 @@ posts = [
      {"id": 1, "title": "Welcome to EV Community", "content": "First post!", "votes": 5, "comments": []}
 ]
 
-# stores registered users 
+# stores registered users + ensures that each user has a favorite list 
 users = []
 for u in users:
     if "favorites" not in u:
@@ -72,9 +72,11 @@ def get_or_add_posts():
         return jsonify(new_post), 201
     # if request is GET, returns full list of posts sorted by vote count 
     else:
+        # filters posts by seach term given 
         search_term = request.args.get('search', '').lower()
         filtered_posts = posts
         if search_term:
+            # sort by number of votes, descending 
             filtered_posts = [
                 p for p in posts
                 if search_term in p['title'].lower() or search_term in p['content'].lower()
@@ -108,11 +110,13 @@ def delete_posts(post_id):
     posts = [p for p in posts if p["id"] != post_id]
     return jsonify({"message": "deleted"})
 
+# serves the main html page 
 @app.route('/')
 def index():
     #return send_from_directory('../frontend', 'index.html')
     return send_from_directory(os.path.abspath(os.path.join(os.path.dirname(__file__), '../frontend')), 'index.html')
 
+# servews the static files from frontend folder (pictures)
 @app.route('/static/<path:filename>')
 def send_static(filename):
     return send_from_directory(app.static_folder, filename)
@@ -123,6 +127,7 @@ def post_comments(post_id):
     post = next((p for p in posts if p['id'] == post_id), None)
     if not post:
         return jsonify({"error": "post not found"}), 404
+    # adds a comment if post is found 
     if request.method == 'POST':
         data = request.json
         comment = {"user": data.get("user", "anonymous"), "content": data.get("content")}
@@ -137,7 +142,7 @@ def user_posts(username):
     user_posts = [p for p in posts if p.get("user") == username]
     return jsonify(user_posts)
 
-# adding enpoint to get the user info 
+# adding enpoint to get the user info for user profile 
 @app.route('/api/users/<username>/info', methods=['GET'])
 def get_user_info(username):
     user = next((u for u in users if u["username"] == username), None)
@@ -153,7 +158,7 @@ def get_user_info(username):
         "social_links": user.get("social_libnks", {})
     })
 
-# update their profile description 
+# update their profile description (NOT USED)
 @app.route('/api/users/<username>/description', methods=['POST'])
 def update_description(username):
     user = next((u for u in users if u["username"] == username), None)

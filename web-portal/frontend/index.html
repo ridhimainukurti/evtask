@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <title>EV Community Portal</title>
     <meta name="viewport" content="width=1024">
+    <!-- Fonts, icons and style sheet -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
     <h1>EV Community Portal</h1>
+    <!-- Registering and Login Section -->
     <div id="authSection" class="card auth-card auth-flex">
         <div class="auth-half register-side">
             <h3>Register</h3>
@@ -47,7 +49,7 @@
     <button id="logoutBtn" class="logout-btn" style="display:none;">Sign Out</button>
 
     <div id="mainApp" class="card main-card" style="display:none;">
-        <!-- 1. Search + actions row -->
+        <!-- search and action buttons -->
         <div class="top-toolbar">
             <input type="text" id="searchInput" class="search-bar" placeholder="Search posts...">
             <button id="searchBtn" class="btn-main">Search</button>
@@ -55,7 +57,7 @@
             <button id="showFavBtn" class="btn-fav"><i class="fa fa-star"></i> Saved</button>
         </div>
 
-        <!-- 2. Post creation card (centered) -->
+        <!-- post card creation -->
         <div class="post-creator-card">
             <form id="postForm" class="post-form">
                 <input type="text" id="title" placeholder="Title" required>
@@ -64,17 +66,20 @@
             </form>
         </div>
 
-        <!-- 3. Posts Feed -->
+        <!-- posts feed -->
         <div id="posts"></div>
     </div>
     <script>
+        //holds the ids of posts that user has favorited (used later)
         window.userFavorites = [];
 
+        // gets term and searches for that term in the posts 
         document.getElementById('searchBtn').onclick = function() {
             const term = document.getElementById('searchInput').value.trim();
             loadPosts(term);
         };
 
+        //clears the search box and loads the post again 
         document.getElementById('clearSearchBtn').onclick = function() {
             document.getElementById('searchInput').value = '';
             loadPosts();
@@ -88,6 +93,7 @@
                     console.log("Loaded comments for post " + postID, comments);
                     const listDiv = document.getElementById(`commentList-${postID}`);
                     listDiv.innerHTML = '';
+                    // loading comment with assosciated user 
                     comments.forEach(comment => {
                         const c = document.createElement('div');
                         c.className = 'comment';
@@ -97,18 +103,20 @@
                 });       
         }
         
-        // another helper for adding commenting 
+        // adding comments, refreshes comments for that post 
         function addComment(event, postId) {
             event.preventDefault();
             const input = document.getElementById(`commentInput-${postId}`);
             const content = input.value;
             const user = localStorage.getItem('username') || 'Anonymous';
+            //sends the new comment to the backend 
             fetch(`/api/posts/${postId}/comments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user, content })
             })
             .then(res => res.json())
+            //refreshes comments for that post and clears input box
             .then(() => {
                 loadComments(postId);
                 input.value = '';
@@ -117,21 +125,24 @@
         // asks for lists of post from backend 
         // has two buttons: upvote & downvote 
         function loadPosts(searchTerm) {
+            // if search term is there add it to url 
             let url = 'api/posts';
             if (searchTerm) {
                 url += '?search=' + encodeURIComponent(searchTerm);
             }
-
+            // fetches posts 
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     const container = document.getElementById('posts');
                     container.innerHTML = '';
+                    // builds a div for all the info about post 
                     data.forEach(post => {
                         const div = document.createElement('div');
                         div.className = 'post';
                         const currentUser = localStorage.getItem('username');
                         let isFavorited = false;  
+                        // checks if the post is already favorited by user 
                         if (currentUser && post.id && window.userFavorites) {
                             isFavorited = window.userFavorites.includes(post.id);
                         }
@@ -171,7 +182,7 @@
                         container.appendChild(div);
                         loadComments(post.id);
                     });
-                    // Re-add event listeners for user profile links and comment forms, if needed
+                    //event listener which shows the user profile when their link is clicked 
                     document.querySelectorAll('.user-link').forEach(link => {
                         link.onclick = function(e) {
                             e.preventDefault();
@@ -179,6 +190,7 @@
                             showUserPosts(username);
                         };
                     });
+                    //event listener to submit new comments for that post 
                     document.querySelectorAll('form[id^="commentForm-"]').forEach(form => {
                         form.onsubmit = function(event) {
                             event.preventDefault();
@@ -190,7 +202,7 @@
         }
         //loadPosts();
 
-        // shows the users posts 
+        // shows the users posts/profile 
         function showUserPosts(username) {
             document.getElementById('postForm').style.display = 'none';
             //document.getElementById('postCreatorCard').style.display = 'none';
@@ -199,6 +211,7 @@
                 .then(userInfo => {
                     fetch(`/api/users/${username}/posts`)
                         .then(res => res.json())
+                        // fetching the respective user's posts 
                         .then(userPosts => {
                             const container = document.getElementById('posts');
 
@@ -218,7 +231,7 @@
                                     socialHtml += `<a href="${userInfo.social_links.linkedin}" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>`;
                             }
 
-                            // Profile card (no editing)
+                            // Profile card with all users information 
                             let profileHtml = `
                                 <div class="profile-card">
                                     <div class="profile-banner">
@@ -271,7 +284,7 @@
                                 loadComments(post.id);
                             });
 
-                            // Back to Feed button
+                            // Back to Feed button which returns back the post creator form 
                             const backBtn = document.createElement('button');
                             backBtn.innerText = "Back to Feed";
                             backBtn.className = "btn-main btn-ghost";
@@ -343,13 +356,16 @@
             }
         }
 
+        // handles the saves/unsaving of posts 
         function toggleFavorite(postId) {
             const user = localStorage.getItem('username');
+            // checks if the user is logged in 
             if (!user) {
                 alert("You need to log in to save posts!");
                 return;
             }
             let isFavorite = window.userFavorites && window.userFavorites.includes(postId);
+            // decides whether to save/unsave baed on whether post is a favorite or not
             let method = isFavorite ? 'DELETE' : 'POST';
             fetch(`/api/users/${user}/favorites/${postId}`, { method })
                 .then(res => res.json())
@@ -428,6 +444,7 @@
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
             const user = localStorage.getItem('username') || 'Anonymous';
+            // sends to backend to create post
             fetch('api/posts', {
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'},
@@ -447,12 +464,15 @@
             updateUserUI();
         });
 
+        //event listener to show favorites 
         document.getElementById('showFavBtn').onclick = function() {
             const user = localStorage.getItem('username');
+            // checks if user is logged in 
             if (!user) {
                 alert("Log in to see saved posts!");
                 return;
             }
+            //fetches saved posts 
             fetch(`/api/users/${user}/favorites`)
                 .then(res => res.json())
                 .then(posts => {
