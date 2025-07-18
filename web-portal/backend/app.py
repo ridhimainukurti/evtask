@@ -16,24 +16,29 @@ users = []
 for u in users:
     if "favorites" not in u:
         u["favorites"] = []
-        
+
 # endpoint for user authentication 
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
     username = data.get("username")
     password = data.get("password")
-    # Add description and registration date
-    description = data.get("description", "This user has not set a description yet.")
-    created_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    display_name = data.get("display_name", username)
+    bio = data.get("bio", "")
+    location = data.get("location", "")
+    interests = data.get("interests", [])
+    social_links = data.get("social_links", {})
     # checking to see if user exists if not add to users list
     if any(u["username"] == username for u in users): 
         return jsonify({"error": "user already exists"}), 400
     users.append({
         "username": username, 
         "password": password,
-        "description": description, 
-        "created_at": created_at,
+        "display_name": display_name,
+        "bio": bio, 
+        "location": location, 
+        "interests": interests,
+        "social_links": social_links,
         "favorites": []
     })
     return jsonify({"message": "registered"})
@@ -141,8 +146,11 @@ def get_user_info(username):
     # Do not return password!
     return jsonify({
         "username": user["username"],
-        "description": user["description"],
-        "created_at": user["created_at"]
+        "display_name": user.get("display_name", user["username"]),
+        "bio": user.get("bio", ""),
+        "location": user.get("location", ""),
+        "interests": user.get("interests", []),
+        "social_links": user.get("social_libnks", {})
     })
 
 # update their profile description 

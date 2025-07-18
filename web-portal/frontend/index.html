@@ -10,38 +10,61 @@
 </head>
 <body>
     <h1>EV Community Portal</h1>
-    <div id="authSection" class="card auth-card">
-        <h3>Register</h3>
-        <form id="registerForm">
-            <input type="text" id="reguser" placeholder="Username" required>
-            <input type="password" id="regpass" placeholder="Password" required>
-            <button type="submit" class="btn-main">Register</button>
-        </form>
-        <h3>Login</h3>
-        <form id="loginForm">
+    <div id="authSection" class="card auth-card auth-flex">
+        <div class="auth-half register-side">
+            <h3>Register</h3>
+            <form id="registerForm">
+            <div class="auth-inputs-two-cols">
+                <div>
+                <input type="text" id="reguser" placeholder="Username" required>
+                <input type="password" id="regpass" placeholder="Password" required>
+                <input type="text" id="display_name" placeholder="Display Name">
+                <input type="text" id="bio" placeholder="Short Bio">
+                </div>
+                <div>
+                <input type="text" id="location" placeholder="Location">
+                <input type="text" id="interests" placeholder="Interests (comma separated)">
+                <input type="text" id="github" placeholder="GitHub URL">
+                <input type="text" id="linkedin" placeholder="LinkedIn URL">
+                </div>
+            </div>
+            <div style="text-align:center;">
+                <button type="submit" class="btn-main" style="width:100%;">Register</button>
+            </div>
+            </form>
+        </div>
+        <div class="auth-half login-side">
+            <h3>Login</h3>
+            <form id="loginForm">
             <input type="text" id="loginuser" placeholder="Username" required>
             <input type="password" id="loginpass" placeholder="Password" required>
-            <button type="submit" class="btn-main">Login</button>
-        </form>
-        <div id="userWelcome"></div>
+            <button type="submit" class="btn-main" style="width:100%;">Login</button>
+            </form>
+            <div id="userWelcome"></div>
+        </div>
     </div>
 
     <button id="logoutBtn" class="logout-btn" style="display:none;">Sign Out</button>
 
     <div id="mainApp" class="card main-card" style="display:none;">
-        <div class="composer-card">
+        <!-- 1. Search + actions row -->
+        <div class="top-toolbar">
+            <input type="text" id="searchInput" class="search-bar" placeholder="Search posts...">
+            <button id="searchBtn" class="btn-main">Search</button>
+            <button id="clearSearchBtn" class="btn-ghost">Clear</button>
+            <button id="showFavBtn" class="btn-fav"><i class="fa fa-star"></i> Saved</button>
+        </div>
+
+        <!-- 2. Post creation card (centered) -->
+        <div class="post-creator-card">
             <form id="postForm" class="post-form">
                 <input type="text" id="title" placeholder="Title" required>
                 <input type="text" id="content" placeholder="Content or Link" required>
                 <button type="submit" class="btn-main btn-post">Post</button>
             </form>
-            <div class="controls-toolbar">
-                <input type="text" id="searchInput" class="search-bar" placeholder="Search posts...">
-                <button id="searchBtn" class="btn-main">Search</button>
-                <button id="clearSearchBtn" class="btn-ghost">Clear</button>
-                <button id="showFavBtn" class="btn-fav"><i class="fa fa-star"></i> Saved</button>
-            </div>
         </div>
+
+        <!-- 3. Posts Feed -->
         <div id="posts"></div>
     </div>
     <script>
@@ -169,107 +192,97 @@
 
         // shows the users posts 
         function showUserPosts(username) {
-            // Hide the post form
             document.getElementById('postForm').style.display = 'none';
-
-            // Fetch user info first
+            //document.getElementById('postCreatorCard').style.display = 'none';
             fetch(`/api/users/${username}/info`)
                 .then(res => res.json())
                 .then(userInfo => {
-                    // Now fetch the user's posts
                     fetch(`/api/users/${username}/posts`)
                         .then(res => res.json())
                         .then(userPosts => {
                             const container = document.getElementById('posts');
-                                const loggedInUser = localStorage.getItem('username');
 
-                                // Build profile header with editable description if current user
-                                let profileHtml = `
-                                    <button id="backToFeedBtn" class="btn-main btn-ghost">Back to Feed</button>
-                                    <h2>Profile: ${userInfo.username}</h2>
-                                    <p><b>Joined:</b> ${userInfo.created_at}</p>
+                            // Interests
+                            let interestsHtml = '';
+                            if (userInfo.interests && userInfo.interests.length)
+                                interestsHtml = '<div class="profile-interests">' + userInfo.interests.map(tag =>
+                                    `<span class="profile-tag">${tag}</span>`
+                                ).join('') + '</div>';
+                            
+                            // Social links
+                            let socialHtml = '';
+                            if (userInfo.social_links) {
+                                if (userInfo.social_links.github)
+                                    socialHtml += `<a href="${userInfo.social_links.github}" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>`;
+                                if (userInfo.social_links.linkedin)
+                                    socialHtml += `<a href="${userInfo.social_links.linkedin}" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>`;
+                            }
+
+                            // Profile card (no editing)
+                            let profileHtml = `
+                                <div class="profile-card">
+                                    <div class="profile-banner">
+                                        <img src="${userInfo.avatar || 'static/profile.png'}" class="profile-avatar" alt="User Avatar">
+                                        <div class="profile-banner-info">
+                                            <div class="profile-name-row">
+                                                <span class="profile-name">${userInfo.display_name || userInfo.username}</span>
+                                                <span class="profile-username">@${userInfo.username}</span>
+                                            </div>
+                                            <div class="profile-location">
+                                                ${userInfo.location ? `<span><i class="fa fa-map-marker-alt"></i> ${userInfo.location}</span>` : ""}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="profile-main-info">
+                                        <div class="profile-interests">
+                                            ${(userInfo.interests || []).map(tag =>
+                                                `<span class="profile-tag">${tag}</span>`
+                                            ).join('')}
+                                        </div>
+                                        <div class="profile-bio-section">
+                                            ${userInfo.bio || ""}
+                                        </div>
+                                        <div class="profile-stats">
+                                            <span><b>${userPosts.length}</b> Posts</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h3 style="margin-top:36px;">Posts by ${userInfo.display_name || userInfo.username}</h3>
+                            `;
+                            container.innerHTML = profileHtml;
+
+                            // Render user's posts with comments under each
+                            userPosts.forEach(post => {
+                                const div = document.createElement('div');
+                                div.className = 'post';
+                                div.innerHTML = `
+                                    <h3>${post.title}</h3>
+                                    <p>${post.content}</p>
+                                    <div class="post-meta">
+                                        <span>Votes: ${post.votes}</span>
+                                        <span>Posted by: ${post.user || 'Anonymous'}</span>
+                                    </div>
+                                    <div class="comments" id="comments-${post.id}">
+                                        <strong>Comments:</strong>
+                                        <div id="commentList-${post.id}"></div>
+                                    </div>
                                 `;
-
-                                if (loggedInUser === userInfo.username) {
-                                    // Show editable description
-                                    profileHtml += `
-                                        <p><b>Description:</b>
-                                            <span id="descText">${userInfo.description}</span>
-                                            <button id="editDescBtn">Edit</button>
-                                        </p>
-                                        <div id="editDescSection" style="display:none;">
-                                            <input type="text" id="newDescInput" value="${userInfo.description}" style="width:60%;">
-                                            <button id="saveDescBtn">Save</button>
-                                            <button id="cancelDescBtn">Cancel</button>
-                                        </div>
-                                    `;
-                                } else {
-                                    // Show read-only description for other users
-                                    profileHtml += `<p><b>Description:</b> ${userInfo.description}</p>`;
-                                }
-
-                                profileHtml += `<h3>Posts by ${username}</h3>`;
-                                container.innerHTML = profileHtml;
-
-                                // Render user's posts (keep this the same as before)
-                                userPosts.forEach(post => {
-                                    const div = document.createElement('div');
-                                    div.className = 'post';
-                                    div.innerHTML = `
-                                        <h3>${post.title}</h3>
-                                        <p>${post.content}</p>
-                                        <div class="post-meta">
-                                            <span>Votes: ${post.votes}</span>
-                                            <span>Posted by: ${post.user || 'Anonymous'}</span>
-                                        </div>
-                                        <div class="comments" id="comments-${post.id}">
-                                            <strong>Comments:</strong>
-                                            <div id="commentList-${post.id}"></div>
-                                        </div>
-                                    `;
-                                    container.appendChild(div);
-                                    loadComments(post.id);
-                                });
-
-                                // "Back to Feed" button
-                                document.getElementById('backToFeedBtn').onclick = function() {
-                                    document.getElementById('postForm').style.display = 'block';
-                                    loadPosts();
-                                };
-
-                                // Only add these event listeners if viewing own profile
-                                if (loggedInUser === userInfo.username) {
-                                    // Edit button click
-                                    document.getElementById('editDescBtn').onclick = function() {
-                                        document.getElementById('descText').style.display = 'none';
-                                        document.getElementById('editDescBtn').style.display = 'none';
-                                        document.getElementById('editDescSection').style.display = 'inline-block';
-                                    };
-                                    // Save button click
-                                    document.getElementById('saveDescBtn').onclick = function() {
-                                        const newDesc = document.getElementById('newDescInput').value;
-                                        fetch(`/api/users/${userInfo.username}/description`, {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({ description: newDesc })
-                                        })
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            document.getElementById('descText').innerText = data.description;
-                                            document.getElementById('descText').style.display = 'inline';
-                                            document.getElementById('editDescBtn').style.display = 'inline';
-                                            document.getElementById('editDescSection').style.display = 'none';
-                                        });
-                                    };
-                                    // Cancel button click
-                                    document.getElementById('cancelDescBtn').onclick = function() {
-                                        document.getElementById('editDescSection').style.display = 'none';
-                                        document.getElementById('descText').style.display = 'inline';
-                                        document.getElementById('editDescBtn').style.display = 'inline';
-                                    };
-                                }
+                                container.appendChild(div);
+                                loadComments(post.id);
                             });
-                    });
+
+                            // Back to Feed button
+                            const backBtn = document.createElement('button');
+                            backBtn.innerText = "Back to Feed";
+                            backBtn.className = "btn-main btn-ghost";
+                            backBtn.onclick = function() {
+                                document.getElementById('postForm').style.display = 'block';
+                                //document.getElementById('postCreatorCard').style.display = 'flex';
+                                loadPosts();
+                            };
+                            container.prepend(backBtn);
+                        });
+                });
         }
 
         // deletes a post if it is inappropriate
@@ -357,10 +370,17 @@
             e.preventDefault();
             const username = document.getElementById('reguser').value;
             const password = document.getElementById('regpass').value;
+            const display_name = document.getElementById('display_name').value;
+            const bio = document.getElementById('bio').value;
+            const location = document.getElementById('location').value;
+            const interests = document.getElementById('interests').value.split(',').map(x=>x.trim()).filter(x=>x);
+            const social_links = {};
+            if (document.getElementById('github').value) social_links.github = document.getElementById('github').value;
+            if (document.getElementById('linkedin').value) social_links.linkedin = document.getElementById('linkedin').value;
             fetch('/api/register', {
                 method: 'POST',
                 headers: {'Content-type': 'application/json'},
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ username, password, display_name, bio, location, interests, social_links })
             })
             // gets confirmation that user is registered and resets form 
             .then(res => res.json())
@@ -452,16 +472,17 @@
                                     </a>
                                 </span>
                             </div>
-                            <button onclick="toggleFavorite(${post.id})" class="fav-btn" style="margin-left:10px;">
-                                ★ Saved
+                            <div class="vote-group">
+                                <button onclick="vote(${post.id}, 'upvote')" class="btn-vote upvote"><i class="fa fa-arrow-up"></i></button>
+                                <span class="vote-count" id="votes-${post.id}">${post.votes}</span>
+                                <button onclick="vote(${post.id}, 'downvote')" class="btn-vote downvote"><i class="fa fa-arrow-down"></i></button>
+                            </div>
+                            <button onclick="toggleFavorite(${post.id})" class="btn-fav" style="margin-left:10px">
+                               ★ Saved
                             </button>
                             <div class="comments" id="comments-${post.id}">
                                 <strong>Comments:</strong>
                                 <div id="commentList-${post.id}"></div>
-                                <form id="commentForm-${post.id}" data-post-id="${post.id}">
-                                    <input type="text" placeholder="Add a comment" id="commentInput-${post.id}" required />
-                                    <button type="submit">Post</button>
-                                </form>
                             </div>
                         `;
                         container.appendChild(div);

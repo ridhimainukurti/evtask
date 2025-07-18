@@ -1,0 +1,472 @@
+body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: radial-gradient(ellipse at 60% 0%, #f5f6fa 75%, #e7eaf4 100%);
+    margin: 0;
+    padding: 0;
+    min-width: 1024px;
+}
+h1 {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 3.2rem;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    color: #232529;
+    text-shadow: 0 2px 24px #ffd0b1a0;
+}
+.card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 6px 32px rgba(120,120,160,0.08), 0 1px 2px rgba(255, 118, 77, 0.05);
+    max-width: 700px;
+    margin: 38px auto;
+    padding: 38px 48px 32px 48px;
+    animation: fadeIn 0.7s cubic-bezier(0.2,0.6,0.3,1);
+    border: 1.6px solid #f5e4de;
+}
+.auth-card {
+  max-width: 600px;     /* or 650px for extra roomy */
+  min-width: 420px;
+  width: 100%;
+  margin: 40px auto;
+  padding: 36px 40px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 6px 32px 0 rgba(235, 120, 35, 0.06);
+  border: 2px solid #ffe2d0;
+}
+.main-card {
+    max-width: 700px;
+    margin-top: 26px;
+}
+input[type="text"], input[type="password"] {
+    padding: 13px 17px;
+    border: 1.6px solid #edeff1;
+    border-radius: 7px;
+    font-size: 1.12rem;
+    background: #f7f8fa;
+    outline: none;
+    transition: border .13s, box-shadow 0.15s;
+    margin: 0 10px 16px 0;
+    box-shadow: 0 1.5px 7px rgba(200,180,160,0.05);
+}
+input[type="text"]:focus, input[type="password"]:focus {
+    border: 1.8px solid #ff7033;
+    background: #fff;
+    box-shadow: 0 2px 11px #ffd6c24a;
+}
+.btn-main, .btn-ghost, .btn-fav, .btn-delete, .btn-vote, .btn-fav-big {
+    font-family: inherit;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    font-weight: 700;
+    font-size: 1.02rem;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(255,112,51,0.07);
+    transition: background 0.17s, color 0.17s, box-shadow 0.17s, border 0.17s;
+}
+.btn-main {
+  background: #ff7835;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 32px;      /* Wider horizontally but not full-width */
+  font-size: 1.1rem;
+  margin-top: 18px;
+  cursor: pointer;
+  transition: background 0.18s;
+  display: inline-block;   /* No full-width! */
+  width: auto;             /* Fixes being too wide */
+}
+.btn-main:active,
+.btn-main:hover {
+  background: #e65c1a;
+}
+
+.btn-ghost {
+    background: #f8f9fb;
+    color: #3a3d44;
+    border: 1.5px solid #d8d8de;
+    padding: 11px 24px;
+    margin-left: 8px;
+}
+.btn-ghost:hover, .btn-ghost:focus {
+    background: #ffe5d4;
+    color: #ea4a0d;
+    border-color: #ff7033;
+}
+.btn-fav, .btn-fav-big {
+    background: #fff7ef;
+    color: #ff7033;
+    border: 1.7px solid #ff703370;
+    padding: 10px 18px 10px 14px;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+.btn-fav:hover, .btn-fav:focus, .btn-fav-big:hover, .btn-fav-big:focus {
+    background: #fff0e6;
+    color: #ea4a0d;
+    border: 1.7px solid #ea4a0d;
+}
+.btn-fav-big i, .btn-fav i { font-size: 1.35em; }
+.btn-vote {
+    background: #f4f6f8;
+    color: #888;
+    border: 1.5px solid #edeff2;
+    padding: 8px 13px;
+    font-size: 1.13rem;
+    margin: 0 6px 0 0;
+}
+.btn-vote.upvote {
+    color: #ff7033;
+    border: 1.5px solid #ffdbcb;
+}
+.btn-vote.downvote {
+    color: #aaa;
+    border: 1.5px solid #ededf1;
+}
+.btn-vote:hover, .btn-vote:focus {
+    background: #fff0e6;
+    color: #ea4a0d;
+    border-color: #ff7033;
+}
+.vote-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin: 0 0 10px 0;
+}
+.vote-count {
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: #222;
+    padding: 0 7px;
+}
+.btn-delete {
+    background: #f54e4e !important;
+    color: #fff !important;
+    border-radius: 7px;
+    padding: 8px 16px;
+    margin-left: 14px;
+    font-weight: 700;
+    border: none;
+}
+.btn-delete:hover, .btn-delete:focus {
+    background: #a12525 !important;
+}
+.logout-btn {
+    position: fixed;
+    right: 50px;
+    top: 34px;
+    background: #45484c;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.07rem;
+    padding: 8px 30px;
+    z-index: 2;
+    box-shadow: 0 2px 9px rgba(40,40,40,0.08);
+    transition: background 0.12s;
+}
+.logout-btn:hover { background: #232529; color: #ff7033;}
+#userWelcome {
+    font-size: 1.13rem;
+    color: #ff7033;
+    margin: 14px 0 10px 0;
+    font-weight: 700;
+}
+.controls-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.search-bar {
+    background: #f7f8fa;
+    border-radius: 7px;
+    border: 1.5px solid #ececec;
+    padding: 11px 20px;
+    font-size: 1.08rem;
+    width: 48%;
+    transition: border 0.13s;
+}
+.search-bar:focus {
+    border: 1.6px solid #ff7033;
+}
+#posts {
+    margin-top: 24px;
+}
+.post {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 5px 20px rgba(90,94,110,0.08), 0 0.5px 2.5px rgba(255, 112, 51, 0.05);
+    margin-bottom: 30px;
+    padding: 30px 30px 18px 28px;
+    border-left: 7px solid #ff7033;
+    animation: fadeInPost 0.5s cubic-bezier(0.23,0.89,0.36,1.18);
+    border: 1.3px solid #f3e3dd;
+}
+@keyframes fadeInPost {
+    0% { opacity:0; transform:translateY(25px);}
+    100% { opacity:1; transform:none;}
+}
+.post h3 {
+    font-size: 1.27rem;
+    color: #222;
+    font-weight: 900;
+    margin: 0 0 6px 0;
+}
+.post p {
+    margin: 0 0 8px 0;
+    color: #2e2e34;
+    font-size: 1.11rem;
+}
+.post-meta {
+    color: #8f91a2;
+    font-size: 1.04rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.comments { 
+    margin-top: 10px; 
+    padding: 10px 14px;
+    background: #f8f8fb; 
+    border-radius: 8px; 
+}
+.comment { 
+    margin-left: 18px; 
+    font-size: 1.01em; 
+    color: #454444; 
+    margin-bottom: 5px;
+}
+::-webkit-scrollbar {
+    width: 13px;
+    background: #f5f5f5;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #ffe3d2;
+    border-radius: 10px;
+}
+
+.top-toolbar {
+    display: flex;
+    flex-direction: row;
+    gap: 13px;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.top-toolbar input,
+.top-toolbar button {
+    height: 48px;          /* Make all the same height */
+    box-sizing: border-box;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: 0;
+}
+
+top-toolbar .btn-main {
+    margin-top: 0 !important;       
+    margin-bottom: 0 !important;
+}
+
+@media (max-width: 900px) {
+    .top-toolbar {
+        flex-direction: column;
+        gap: 9px;
+        align-items: stretch;
+    }
+}
+
+.post-creator-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 26px;
+    background: #fffdfa;
+    border-radius: 12px;
+    box-shadow: 0 2px 14px rgba(255,112,51,0.06);
+    padding: 20px 16px 12px 16px;
+    border: 1.2px solid #f1e4de;
+}
+
+.post-form {
+    display: flex;
+    flex-direction: row;
+    gap: 13px;
+    width: 100%;
+    justify-content: center;
+}
+
+.post-form input[type="text"] {
+    flex: 1 1 0;
+    min-width: 0;
+    background: #fcfcfd;
+    border-radius: 9px;
+    border: 1.5px solid #ece5df;
+    font-size: 1.06rem;
+    padding: 13px 19px;
+    box-shadow: 0 1.5px 7px rgba(220,180,120,0.04);
+    transition: border 0.18s, box-shadow 0.18s;
+}
+
+.post-form input[type="text"]:focus {
+    border: 1.8px solid #ff7033;
+    box-shadow: 0 2px 12px #ffd6c285;
+    background: #fff;
+}
+
+.btn-post {
+    font-size: 1.13rem;
+    padding: 11px 32px;
+    margin-left: 6px;
+    box-shadow: 0 3px 16px #ffd8c180;
+}
+
+.profile-card {
+    border-radius: 28px;
+    box-shadow: 0 6px 32px rgba(120,120,160,0.08), 0 1px 2px rgba(255, 118, 77, 0.05);
+    background: #fff;
+    margin: 38px auto 0 auto;
+    max-width: 720px;
+    overflow: hidden;
+    border: 1.6px solid #f5e4de;
+}
+
+.profile-banner {
+    width: 100%;
+    background: linear-gradient(90deg, #ffad7c 10%, #ffd5b5 90%);
+    display: flex;
+    align-items: center;
+    padding: 24px 34px;   /* Not too tall, not too short */
+    /* Remove extra bottom padding! */
+    border-bottom: 1px solid #ffe2cd;
+}
+
+.profile-avatar {
+    width: 98px;
+    height: 98px;
+    border-radius: 50%;
+    background: #fff;
+    border: 6px solid #fff5e6;
+    margin-right: 32px;
+    box-shadow: 0 2px 24px #ffecd1a0;
+    object-fit: cover;
+}
+
+.profile-banner-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.profile-name-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.profile-name {
+    font-weight: 900;
+    font-size: 2rem;
+    color: #232529;
+}
+
+.profile-username {
+    color: #b97d47;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.profile-location {
+    margin-top: 8px;
+    color: #ff7033;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.profile-main-info {
+    padding: 24px 34px 28px 34px;
+}
+.profile-bio-section {
+    font-size: 1.32rem;
+    color: #373737;
+    margin: 16px 0 10px 0;
+    font-weight: 400;
+}
+
+.profile-interests {
+    margin-bottom: 10px;
+}
+.profile-tag {
+    display: inline-block;
+    background: #ffefdf;
+    color: #ff7033;
+    font-weight: 700;
+    font-size: 1.08rem;
+    border-radius: 24px;
+    padding: 8px 18px;
+    margin: 3px 9px 3px 0;
+}
+.profile-stats {
+    margin-top: 10px;
+    font-size: 1.17rem;
+    color: #222;
+    font-weight: 800;
+}
+
+
+/* login section */
+.auth-flex {
+  display: flex;
+  gap: 32px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 32px;
+}
+.auth-half {
+  flex: 1 1 0;
+  min-width: 300px;
+  max-width: 420px;
+}
+.register-side {
+    padding-left: 32px;
+}
+.login-side {
+  padding-left: 32px;
+}
+.auth-inputs-two-cols {
+  display: flex;
+  gap: 16px;
+}
+.auth-inputs-two-cols > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#authSection h3 {
+  margin-bottom: 16px;
+}
+@media (max-width: 900px) {
+  .auth-flex {
+    flex-direction: column;
+    gap: 0;
+    padding: 16px;
+  }
+  .login-side {
+    border-left: none;
+    border-top: 2px solid #f5f5f5;
+    padding-left: 0;
+    padding-top: 32px;
+    margin-top: 32px;
+  }
+}
+
